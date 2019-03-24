@@ -93,6 +93,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s_out.write(data)
 
 
+    def writeln(data):
+        s_out.write(data + '\n')
+
+
     def write_end():
         write('\n')
         s_out.flush()
@@ -104,12 +108,12 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
     print("Sending driver info")
 
-    write('driver\n')
-    write(f'race:{race_name}\n')
-    write(f'driver:{driver_name}\n')
-    write(f'color:{color}\n')
+    writeln('driver')
+    writeln(f'race:{race_name}')
+    writeln(f'driver:{driver_name}')
+    writeln(f'color:{color}')
     if car_type:
-        write(f'car:{car_type}\n')
+        writeln(f'car:{car_type}')
     write_end()
 
     print("Driver info sent")
@@ -138,14 +142,14 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             result = nn.predict_single(inputs.values())
 
             # write output
-            write("ok\n")
+            writeln("ok")
             for name, value in zip(output_names, result):
-                write(f"{name}:{value}\n")
+                writeln(f"{name}:{value}")
             write_end()
         elif line == 'finish':
-            print("finish")
+            print("Finish")
             break
         else:
             raise ValueError(f'Server error: "{data}"')
 
-    print("done")
+    print("Done")
