@@ -38,12 +38,12 @@ def load_file(filename):
     return train_x, train_y, input_names, output_names
 
 
-def save(nn, name='car.pickle'):
+def save(nn, name):
     with open(name, 'wb') as f:
         pickle.dump(nn, f)
 
 
-def load(name='car.pickle'):
+def load(name):
     with open(name, 'rb') as f:
         return pickle.load(f)
 
@@ -51,8 +51,13 @@ def load(name='car.pickle'):
 def create_and_train(x, y):
     nn = NeuralNetworkBuilder.build(len(x[0]), [8, 8, len(y[0])], Sigmoid())
     loss = []
-    for _ in tqdm(range(2000)):
-        loss.append(nn.train(x, y, 2))
+    with tqdm(range(10000)) as epochs:
+        for _ in epochs:
+            loss.append(nn.train(x, y, 3))
+            epochs.set_postfix_str(f'loss:{loss[-1]:1.5f}')
+            if loss[-1] <= 0.003:
+                epochs.close()
+                break
 
     plt.plot(loss)
     plt.title("Loss")
@@ -63,21 +68,22 @@ def create_and_train(x, y):
     return nn
 
 
-train_x, train_y, input_names, output_names = load_file("driver.xml")
+filename = '2'
+base_path = 'demo'
+train_x, train_y, input_names, output_names = load_file(f"{base_path}/{filename}.txt")
 
 assert len(train_x[0]) == 28
 assert len(train_y[0]) == 2
 
-nn = load("driver.pickle")
-nn = create_and_train(train_x, train_y)
-save(nn, "driver.pickle")
-
+nn = load(f"{base_path}/{filename}.pickle")
+# nn = create_and_train(train_x, train_y)
+# save(nn, f"{base_path}/{filename}.pickle")
 
 host = 'localhost'
 port = 9461
-race_name = 'race'
+race_name = 'Race'
 driver_name = 'var0065'
-color = 'FF0000'
+color = 'FFD700'
 car_type = None
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -127,8 +133,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
     # main loop
     while True:
-        line = read()
-        if line == 'round':
+        data = read()
+        if data == 'round':
             # parse inputs
             inputs = OrderedDict([(name, 0) for name in input_names])
             while True:
@@ -146,10 +152,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             for name, value in zip(output_names, result):
                 writeln(f"{name}:{value}")
             write_end()
-        elif line == 'finish':
+        elif data == 'finish':
             print("Finish")
             break
-        else:
+        elif data != '':
             raise ValueError(f'Server error: "{data}"')
 
     print("Done")

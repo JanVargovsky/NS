@@ -15,8 +15,8 @@ class Node:
         self.outputDerivative = None
 
     def forward(self):
-        self.totalInput = sum([edge.w * edge.nodeFrom.output for edge in self.inputs]) + self.b
-        self.output = self.activation.output(self.totalInput)
+        totalInput = sum([edge.w * edge.nodeFrom.output for edge in self.inputs]) + self.b
+        self.output = self.activation.output(totalInput)
 
     def calculateOutputDerivative(self):
         self.outputDerivative = self.activation.derivative(self.output)
